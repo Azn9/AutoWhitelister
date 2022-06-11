@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'edu.sc.seis.launch4j' version '2.5.3'
+}
+
+group 'dev.azn9'
+version '1.0-SNAPSHOT'
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation files("libs/forms_rt.jar")
+    implementation 'com.github.kwhat:jnativehook:2.2.2'
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'io.github.vincenzopalazzo:material-ui-swing:1.1.2'
+}
+
+launch4j {
+    mainClassName = 'dev.azn9.autowhitelister.Main'
+    icon = "${projectDir}/src/main/resources/icon.ico"
+    jarTask = project.tasks.shadowJar
+    headerType = "gui"
+    language = "FRENCH"
+    companyName = "Azn9"
+    copyright = "Copyright © 2021 Axel 'Azn9' JOLY"
+}
