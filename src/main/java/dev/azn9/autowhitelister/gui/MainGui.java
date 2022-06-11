@@ -24,7 +24,7 @@ import java.util.List;
 
 public class MainGui {
 
-    private static final String URL_REGEX = "https://bots-api\\.azn9\\.dev/whitelist/[a-zA-Z\\d]{8}-[a-zA-Z\\d]{4}-[a-zA-Z\\d]{4}-[a-zA-Z\\d]{4}-[a-zA-Z\\d]{12}";
+    private static final String URL_REGEX = "https://bots-api\\.azn9\\.dev/whitelist/\\w+/\\w+";
 
     private JPanel contentPane;
 
