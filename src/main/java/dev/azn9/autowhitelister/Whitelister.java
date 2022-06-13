@@ -45,7 +45,7 @@ public class Whitelister {
     }
 
     private void startWhitelist(List<String> toWhitelist, String whitelistCommand, double delay) {
-        new WaitingKeypressGui(this.mainGui, toWhitelist, whitelistCommand, delay).show();
+        new WaitingKeypressGui(this.mainGui, this, toWhitelist, whitelistCommand, delay).show();
     }
 
     private List<String> loadWhitelist(String urlString, String apiKey) throws Exception {
@@ -82,11 +82,14 @@ public class Whitelister {
             String username = jsonElement.getAsString();
 
             if (!this.alreadyWhitelisted.contains(username)) {
-                this.alreadyWhitelisted.add(username);
                 toWhitelist.add(username);
             }
         }
 
         return toWhitelist;
+    }
+
+    public List<String> getAlreadyWhitelisted() {
+        return this.alreadyWhitelisted;
     }
 }

@@ -4,6 +4,7 @@ import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
+import dev.azn9.autowhitelister.Whitelister;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,6 +20,7 @@ import java.util.TimerTask;
 public class WaitingKeypressGui {
 
     private final MainGui mainGui;
+    private final Whitelister whitelister;
     private final List<String> toWhitelist;
     private final String whitelistCommand;
     private final double delay;
@@ -32,8 +34,9 @@ public class WaitingKeypressGui {
     private boolean waitingChatKeypress = false;
     private boolean whitelisting = false;
 
-    public WaitingKeypressGui(MainGui mainGui, List<String> toWhitelist, String whitelistCommand, double delay) {
+    public WaitingKeypressGui(MainGui mainGui, Whitelister whitelister, List<String> toWhitelist, String whitelistCommand, double delay) {
         this.mainGui = mainGui;
+        this.whitelister = whitelister;
         this.toWhitelist = toWhitelist;
         this.whitelistCommand = whitelistCommand;
         this.delay = delay;
@@ -99,6 +102,8 @@ public class WaitingKeypressGui {
                             Thread.sleep(200);
 
                             robot.keyPress(KeyEvent.VK_ENTER);
+
+                            WaitingKeypressGui.this.whitelister.getAlreadyWhitelisted().add(toWhitelist);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
