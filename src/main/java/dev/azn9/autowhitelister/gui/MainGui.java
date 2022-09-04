@@ -11,10 +11,13 @@ import mdlaf.MaterialLookAndFeel;
 import mdlaf.themes.JMarsDarkTheme;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -30,19 +33,57 @@ public class MainGui {
 
     private JPasswordField apiKeyField;
     private JTextField urlField;
-    private JLabel delayLabel;
-    private JSlider delaySlider;
     private JTextField whitelistCommandFiled;
     private JButton startButton;
+    private JButton fileButton;
 
     private JDialog frame;
 
     public MainGui() {
         Whitelister whitelister = new Whitelister(this);
 
-        this.delaySlider.addChangeListener(e -> {
-            double delay = (this.delaySlider.getValue() / 100D) * 2;
-            this.delayLabel.setText(String.format("Délai : %.2fs", delay));
+        this.fileButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setAcceptAllFileFilterUsed(false);
+            fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("TXT files", "txt"));
+
+            int result = fileChooser.showOpenDialog(this.frame);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                List<String> toWhitelist = new ArrayList<>();
+                String whitelistCommand = this.whitelistCommandFiled.getText();
+
+                File file = fileChooser.getSelectedFile();
+                if (!file.exists()) {
+                    JOptionPane.showMessageDialog(this.frame, "Le fichier n'existe pas", "Erreur", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.toURI().toURL().openStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (line.matches("[A-Za-z0-9_]{3,16}")) {
+                            toWhitelist.add(line);
+                        } else {
+                            JOptionPane.showMessageDialog(this.frame, "Le fichier contient des pseudos invalides : " + line, "Erreur", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this.frame, "Une erreur est survenue : " + ex.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (whitelistCommand.isEmpty()) {
+                    JOptionPane.showMessageDialog(this.contentPane, "Veuillez entrer la commande de whitelisting.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                this.frame.setVisible(false);
+                whitelister.start(toWhitelist, whitelistCommand);
+            }
         });
 
         this.startButton.addActionListener(e -> {
@@ -70,10 +111,8 @@ public class MainGui {
                 return;
             }
 
-            double delay = (this.delaySlider.getValue() / 100D) * 2;
-
             this.frame.setVisible(false);
-            whitelister.start(this.contentPane, url, apiKey, whitelistCommand, delay);
+            whitelister.start(this.contentPane, url, apiKey, whitelistCommand);
         });
     }
 
@@ -115,19 +154,16 @@ public class MainGui {
      */
     private void $$$setupUI$$$() {
         contentPane = new JPanel();
-        contentPane.setLayout(new GridLayoutManager(12, 3, new Insets(0, 0, 0, 0), -1, -1));
+        contentPane.setLayout(new GridLayoutManager(11, 3, new Insets(0, 0, 0, 0), -1, -1));
         startButton = new JButton();
         startButton.setText("Démarrer");
-        contentPane.add(startButton, new GridConstraints(10, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        contentPane.add(startButton, new GridConstraints(8, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label1 = new JLabel();
         label1.setText("URL des pseudos");
         contentPane.add(label1, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         urlField = new JTextField();
         urlField.setText("");
         contentPane.add(urlField, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        delayLabel = new JLabel();
-        delayLabel.setText("Délai : 1s");
-        contentPane.add(delayLabel, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
         contentPane.add(spacer1, new GridConstraints(3, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final Spacer spacer2 = new Spacer();
@@ -135,7 +171,7 @@ public class MainGui {
         final Spacer spacer3 = new Spacer();
         contentPane.add(spacer3, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final Spacer spacer4 = new Spacer();
-        contentPane.add(spacer4, new GridConstraints(11, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        contentPane.add(spacer4, new GridConstraints(9, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final JLabel label2 = new JLabel();
         label2.setText("Clé d'API");
         contentPane.add(label2, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -143,15 +179,15 @@ public class MainGui {
         contentPane.add(apiKeyField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label3 = new JLabel();
         label3.setText("Commande de whitelist (avec le / si besoin)");
-        contentPane.add(label3, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        contentPane.add(label3, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         whitelistCommandFiled = new JTextField();
         whitelistCommandFiled.setText("/whitelist add {pseudo}");
-        contentPane.add(whitelistCommandFiled, new GridConstraints(8, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        contentPane.add(whitelistCommandFiled, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final Spacer spacer5 = new Spacer();
-        contentPane.add(spacer5, new GridConstraints(9, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        delaySlider = new JSlider();
-        delaySlider.setMinimum(10);
-        contentPane.add(delaySlider, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        contentPane.add(spacer5, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        fileButton = new JButton();
+        fileButton.setText("Lire depuis un fichier");
+        contentPane.add(fileButton, new GridConstraints(10, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

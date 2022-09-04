@@ -25,7 +25,11 @@ public class Whitelister {
         this.mainGui = mainGui;
     }
 
-    public void start(JPanel contentPane, String url, String apiKey, String whitelistCommand, double delay) {
+    public void start(List<String> toWhitelist, String whitelistCommand) {
+        this.startWhitelist(toWhitelist, whitelistCommand);
+    }
+
+    public void start(JPanel contentPane, String url, String apiKey, String whitelistCommand) {
         List<String> toWhitelist;
         try {
             toWhitelist = this.loadWhitelist(url, apiKey);
@@ -41,11 +45,11 @@ public class Whitelister {
             return;
         }
 
-        this.startWhitelist(toWhitelist, whitelistCommand, delay);
+        this.startWhitelist(toWhitelist, whitelistCommand);
     }
 
-    private void startWhitelist(List<String> toWhitelist, String whitelistCommand, double delay) {
-        new WaitingKeypressGui(this.mainGui, this, toWhitelist, whitelistCommand, delay).show();
+    private void startWhitelist(List<String> toWhitelist, String whitelistCommand) {
+        new WaitingKeypressGui(this.mainGui, this, toWhitelist, whitelistCommand).show();
     }
 
     private List<String> loadWhitelist(String urlString, String apiKey) throws Exception {
